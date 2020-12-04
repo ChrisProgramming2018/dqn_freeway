@@ -10,8 +10,9 @@ from torch.utils.tensorboard import SummaryWriter
 from collections import deque
 from datetime import datetime
 from replay_buffer import ReplayBuffer
-from utils import time_format
-
+from utils import time_format, eval_policy
+from dqn_agent import DQNAgent
+from framestack import FrameStack
 def train_agent(env, config):
     """
     Args:
@@ -25,8 +26,10 @@ def train_agent(env, config):
     #pathname = str(args.locexp) + "/" + str(args.env_name) + '_agent_' + str(args.policy)
     #pathname += "_batch_size_" + str(args.batch_size) + "_lr_act_" + str(args.lr_actor) 
     #pathname += "_lr_critc_" + str(args.lr_critic) + "_lr_decoder_"
-    pathname = "" 
+    pathname = dt_string 
     tensorboard_name = str(config["locexp"]) + '/runs/' + pathname 
+    agent = DQNAgent(state_size=200, action_size= env.action_space.n,  config=config)
+    memory =  ReplayBuffer((3, config["size"], config["size"]), (1,), config["expert_buffer_size"], int(config["image_pad"]), config["device"])
     writer = SummaryWriter(tensorboard_name)
     eps = config["eps_start"]
     eps_end = config["eps_end"]
@@ -35,17 +38,28 @@ def train_agent(env, config):
     scores = [] 
     t0 = time.time()
     for i_episode in range(config["train_episodes"]):
-        state = env.reset()
+        obs = env.reset()
         score = 0
         for t in range(config["max_t"]):
-            #action = agent.act(state, eps)
-            action = env.action_space.sample()
-            next_state, reward, done, _ = env.step(action)
-            state = next_state
+            action = agent.act(obs, eps)
+            # action = env.action_space.sample()
+            next_obs, reward, done_no_max, _ = env.step(action)
+            done = done_no_max
+            if t + 1 == config["max_t"]:
+                print("t ", t)
+                done = 0
+            memory.add(obs, action, reward, next_obs, done, done_no_max)
+            agent.step(memory, writer)
+            obs = next_obs
             score += reward
             if done:
                 break 
         scores_window.append(score)       # save most recent scor
         scores.append(score)              # save most recent score
         eps = max(eps_end, eps_decay*eps) # decrease epsilon
-        print('\rEpisode {}\tAverage Score: {:.2f} time: {}'.format(i_episode, np.mean(scores_window), time_format(time.time() - t0)), end="")
+        print('\rEpisode {} score {} \tAverage Score: {:.2f}  eps: {:.2f} time: {}'.format(i_episode, score, np.mean(scores_window), eps, time_format(time.time() - t0)), end="")         
+        if i_episode % config["eval"] == 0:
+
+            agent.save(str(config["locexp"]) + "/models/eval-{}/".format(i_episode))
+            print('Episode {} Average Score: {:.2f}  eps: {:.2f} time: {}'.format(i_episode, np.mean(scores_window), eps, time_format(time.time() - t0)),)
+

@@ -27,8 +27,7 @@ class QNetwork(nn.Module):
         """Build a network that maps state -> action values."""
         x = F.relu(self.fc1(state))
         x = F.relu(self.fc2(x))
-        x = F.relu(self.fc3(x))
-        return self.fc4(x)
+        return self.fc3(x)
 
 
 class Encoder(nn.Module):
