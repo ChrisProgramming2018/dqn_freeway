@@ -1,15 +1,14 @@
 {
   "env_name": "Freeway-v0",
   "locexp": "search_results",
-  "lr": 1e-4,
-  "lr_pre": 1e-4,
+  "lr": 5e-4,
+  "lr_pre": 5e-4,
   "tau": 1e-3,
   "train_episodes": 10000,
-  "max_t": 500,
+  "max_t": 5000,
   "train_predicter": 0,
   "DDQN": 1,
   "buffer_size": 100000,
-  "expert_buffer_size": 20000,
   "mode": "train",
   "seed": 42,
   "size": 84,
@@ -23,8 +22,6 @@
   "eps_start": 1,
   "eps_end": 0.01,
   "eps_decay": 0.995,
-  "clip": -1,
   "buffer_path": "expert_policy",
-  "expert_buffer_path": "all_action_expert",
   "device": "cuda"
 }

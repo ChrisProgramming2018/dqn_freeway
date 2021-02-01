@@ -29,7 +29,7 @@ def train_agent(env, config):
     pathname = dt_string 
     tensorboard_name = str(config["locexp"]) + '/runs/' + pathname 
     agent = DQNAgent(state_size=200, action_size= env.action_space.n,  config=config)
-    memory =  ReplayBuffer((3, config["size"], config["size"]), (1,), config["expert_buffer_size"], int(config["image_pad"]), config["device"])
+    memory =  ReplayBuffer((3, config["size"], config["size"]), (1,), config["buffer_size"], int(config["image_pad"]), config["device"])
     writer = SummaryWriter(tensorboard_name)
     eps = config["eps_start"]
     eps_end = config["eps_end"]
@@ -57,7 +57,7 @@ def train_agent(env, config):
         scores_window.append(score)       # save most recent scor
         scores.append(score)              # save most recent score
         eps = max(eps_end, eps_decay*eps) # decrease epsilon
-        print('\rEpisode {} score {} \tAverage Score: {:.2f}  eps: {:.2f} time: {}'.format(i_episode, score, np.mean(scores_window), eps, time_format(time.time() - t0)), end="")         
+        print('\rEpisode {} score {} \tAverage Score: {:.2f}  eps: {:.2f} steps {} time: {}'.format(i_episode, score, np.mean(scores_window), eps, t, time_format(time.time() - t0)), end="")         
         if i_episode % config["eval"] == 0:
 
             agent.save(str(config["locexp"]) + "/models/eval-{}/".format(i_episode))
