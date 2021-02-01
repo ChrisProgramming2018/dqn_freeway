@@ -43,18 +43,14 @@ class ReplayBuffer(object):
 
     def sample(self, batch_size):
         idxs = np.random.randint(0, self.capacity if self.full else self.idx, size=batch_size)
-    
         obses = self.obses[idxs]
         next_obses = self.next_obses[idxs]
-
         obses = torch.as_tensor(obses, device=self.device).type(torch.float32)
         next_obses = torch.as_tensor(next_obses, device=self.device).type(torch.float32)
         actions = torch.as_tensor(self.actions[idxs], device=self.device)
         rewards = torch.as_tensor(self.rewards[idxs], device=self.device)
         not_dones_no_max = torch.as_tensor(self.not_dones_no_max[idxs], device=self.device)
         
-        obses = self.aug_trans(obses)
-        next_obses = self.aug_trans(next_obses)
         return obses, actions, rewards, next_obses, not_dones_no_max
 
 
